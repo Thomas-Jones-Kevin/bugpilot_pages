@@ -1,4 +1,4 @@
-# 🐛 BugTracker — Frontend
+# 🐛 BugPilot — Frontend
 
 > React Frontend Setup & Integration Guide  
 > For connecting with Spring Boot + Flask (ML) Backend
@@ -25,7 +25,7 @@ Make sure you have these installed before starting:
 
 ### Step 1 — Clone and Install
 ```bash
-git clone https://github.com/YOUR_USERNAME/bugtracker.git
+git clone https://github.com/Thomas-Jones-Kevin/bugpilot_pages.git
 cd bugtracker
 npm install
 ```
@@ -302,4 +302,4 @@ Use this checklist to make sure everything is connected before the demo:
 
 ---
 
-*BugTracker FYP Project — React + Spring Boot + Flask (DistilBERT)*
+*BugPilot FYP Project — React + Spring Boot + Flask (DistilBERT)*
