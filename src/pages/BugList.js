@@ -68,15 +68,15 @@ export default function BugList() {
                 </thead>
                 <tbody>
                   {filtered.map((b) => (
-                    <tr key={b._id}>
+                    <tr key={b.id}>
                       <td style={{ fontWeight:600, maxWidth:220 }}>{b.title}</td>
                       <td><span className={`badge badge-${b.severity}`}>{b.severity}</span></td>
                       <td><span className={`badge badge-${b.priority==="high"?"critical":b.priority==="medium"?"major":"trivial"}`}>{b.priority}</span></td>
                       <td><span className={`badge badge-${b.status}`}>{b.status}</span></td>
-                      <td>{b.assignedTo?.name || <span style={{ color:"#aaa" }}>Unassigned</span>}</td>
+                      <td>{b.assignedUser?.name || <span style={{ color:"#aaa" }}>Unassigned</span>}</td>
                       <td>{b.createdBy?.name}</td>
                       <td style={{ color:"#aaa", fontSize:"0.8rem" }}>{new Date(b.createdAt).toLocaleDateString()}</td>
-                      <td><Link to={`/bugs/${b._id}`} className="btn btn-outline btn-sm">View</Link></td>
+                      <td><Link to={`/bugs/${b.id}`} className="btn btn-outline btn-sm">View</Link></td>
                     </tr>
                   ))}
                 </tbody>

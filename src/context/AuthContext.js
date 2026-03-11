@@ -1,29 +1,40 @@
 import { createContext, useContext, useState } from "react";
+import  axios  from "axios";
 
 const AuthContext = createContext();
 
-const MOCK_USERS = [
-  { _id:"1", name:"Admin User", email:"admin@test.com", password:"123", role:"admin" },
-  { _id:"2", name:"Dev User",   email:"dev@test.com",   password:"123", role:"developer" },
-  { _id:"3", name:"QA Tester",  email:"qa@test.com",    password:"123", role:"qa" },
-];
-
 export const AuthProvider = ({ children }) => {
+
+  const userPath = "http://localhost:8080/api/user"
+
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("mockUser");
     return saved ? JSON.parse(saved) : null;
   });
 
   const login = async (email, password) => {
-    const found = MOCK_USERS.find((u) => u.email === email && u.password === password);
-    if (!found) throw new Error("Invalid credentials");
+    const reqUser = {
+      email,
+      password
+    }
+    const res = await axios.post(`${userPath}/login`,reqUser)
+    const found = res.data;
     localStorage.setItem("mockUser", JSON.stringify(found));
     setUser(found);
     return found;
   };
 
-  const register = async (name, email, password, role) => {
-    const newUser = { _id: Date.now().toString(), name, email, role };
+  const register = async (name, email, password, role, developerType, specialization) => {
+    const reqUser = {
+      name: name,
+      email: email,
+      password: password,
+      role: role,
+      developerType: developerType,
+      specialization: specialization
+    }
+    const res = await axios.post(`${userPath}/signup`, reqUser);
+    const newUser = res.data;
     localStorage.setItem("mockUser", JSON.stringify(newUser));
     setUser(newUser);
     return newUser;
@@ -34,8 +45,18 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const getAllUsers = async () => {
+    const res = await axios.get(userPath);
+    return res.data;
+  }
+
+  const getAllUsersType = async (type) => {
+    const res = await axios.get(`${userPath}/${type}`);
+    return res.data;
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading: false, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading: false, login, register, logout, getAllUsers, getAllUsersType}}>
       {children}
     </AuthContext.Provider>
   );

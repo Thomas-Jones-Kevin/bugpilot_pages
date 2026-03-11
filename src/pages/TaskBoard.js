@@ -2,17 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
-
-const INITIAL_BUGS = [
-  { _id:"1", title:"Login page crashes on Safari",  severity:"critical",    status:"open",         assignedTo:{ name:"Dev User" } },
-  { _id:"2", title:"Button color wrong on hover",   severity:"trivial",     status:"resolved",     assignedTo:{ name:"Dev User" } },
-  { _id:"3", title:"Table overflows on mobile",     severity:"major",       status:"in-progress",  assignedTo:null },
-  { _id:"4", title:"Add dark mode support",         severity:"enhancement", status:"open",         assignedTo:null },
-  { _id:"5", title:"App freezes on file upload",    severity:"blocker",     status:"under-review", assignedTo:{ name:"Dev User" } },
-  { _id:"6", title:"Typo in settings page label",   severity:"trivial",     status:"open",         assignedTo:{ name:"Dev User" } },
-  { _id:"7", title:"Password reset email not sent", severity:"critical",    status:"in-progress",  assignedTo:{ name:"Dev User" } },
-  { _id:"8", title:"404 error on profile page",     severity:"major",       status:"open",         assignedTo:null },
-];
+import {useBugs} from "../context/BugContext";
 
 const COLUMNS = [
   { key:"open",         label:"🔴 Open" },
@@ -22,12 +12,7 @@ const COLUMNS = [
 ];
 
 export default function TaskBoard() {
-  const [bugs, setBugs] = useState(INITIAL_BUGS);
-
-  const moveCard = (bugId, newStatus) => {
-    setBugs((prev) => prev.map((b) => b._id === bugId ? { ...b, status: newStatus } : b));
-    toast.success("Status updated");
-  };
+  const {bugs} = useBugs();
 
   const bugsByStatus = (status) => bugs.filter((b) => b.status === status);
 
@@ -51,23 +36,15 @@ export default function TaskBoard() {
               </div>
 
               {bugsByStatus(col.key).map((bug) => (
-                <div key={bug._id} className="kanban-card">
+                <div key={bug.id} className="kanban-card">
                   <div className="kanban-card-title">
-                    <Link to={`/bugs/${bug._id}`} style={{ textDecoration:"none", color:"inherit" }}>
+                    <Link to={`/bugs/${bug.id}`} style={{ textDecoration:"none", color:"inherit" }}>
                       {bug.title}
                     </Link>
                   </div>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"0.6rem" }}>
                     <span className={`badge badge-${bug.severity}`}>{bug.severity}</span>
-                    <span style={{ fontSize:"0.75rem", color:"#aaa" }}>{bug.assignedTo?.name || "Unassigned"}</span>
-                  </div>
-                  <div style={{ display:"flex", gap:"0.3rem", flexWrap:"wrap" }}>
-                    {COLUMNS.filter((c) => c.key !== col.key).map((c) => (
-                      <button key={c.key} onClick={() => moveCard(bug._id, c.key)}
-                        style={{ fontSize:"0.7rem", padding:"0.2rem 0.5rem", border:"1px solid #ddd", borderRadius:4, background:"#f8f9fa", cursor:"pointer" }}>
-                        → {c.label.split(" ")[1]}
-                      </button>
-                    ))}
+                    <span style={{ fontSize:"0.75rem", color:"#aaa" }}>{bug.assignedUser?.name || "Unassigned"}</span>
                   </div>
                 </div>
               ))}

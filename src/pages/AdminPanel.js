@@ -1,37 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
-
-const MOCK_USERS_INIT = [
-  { _id:"1", name:"Admin User",  email:"admin@test.com", role:"admin" },
-  { _id:"2", name:"Dev User",    email:"dev@test.com",   role:"developer" },
-  { _id:"3", name:"Dev Smith",   email:"smith@test.com", role:"developer" },
-  { _id:"4", name:"QA Tester",   email:"qa@test.com",    role:"qa" },
-  { _id:"5", name:"QA Jones",    email:"jones@test.com", role:"qa" },
-];
-
-const MOCK_BUGS = [
-  { _id:"1", status:"open",         assignedTo:{ _id:"2" } },
-  { _id:"2", status:"resolved",     assignedTo:{ _id:"2" } },
-  { _id:"3", status:"in-progress",  assignedTo:{ _id:"3" } },
-  { _id:"4", status:"open",         assignedTo:null },
-  { _id:"5", status:"under-review", assignedTo:{ _id:"2" } },
-  { _id:"6", status:"open",         assignedTo:{ _id:"2" } },
-  { _id:"7", status:"in-progress",  assignedTo:{ _id:"3" } },
-  { _id:"8", status:"open",         assignedTo:{ _id:"3" } },
-];
+import { useAuth } from "../context/AuthContext";
+import { useBugs } from "../context/BugContext";  
 
 export default function AdminPanel() {
-  const [users, setUsers] = useState(MOCK_USERS_INIT);
+  const { user, getAllUsers }  = useAuth();
+  const { bugs } = useBugs();
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+      const fetchUsers = async () => {
+        try {
+          const data = await getAllUsers();
+          // Fallback to empty array if data is undefined
+          setUsers(data || []); 
+        } catch (err) {
+          console.error("Failed to fetch users:", err);
+          setUsers([]); // Safeguard on error
+        }
+      };
+      fetchUsers();
+    },[])
 
   const changeRole = (userId, role) => {
-    setUsers((prev) => prev.map((u) => u._id === userId ? { ...u, role } : u));
+    setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, role } : u));
     toast.success("Role updated");
   };
 
   const deleteUser = (userId) => {
     if (!window.confirm("Delete this user?")) return;
-    setUsers((prev) => prev.filter((u) => u._id !== userId));
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
     toast.success("User deleted");
   };
 
@@ -39,13 +38,13 @@ export default function AdminPanel() {
     .filter((u) => u.role === "developer")
     .map((u) => ({
       ...u,
-      count: MOCK_BUGS.filter((b) => b.assignedTo?._id === u._id && b.status !== "resolved").length,
+      count: bugs.filter((b) => b.assignedUser?.id === u.id && b.status !== "resolved").length,
     }))
     .sort((a,b) => b.count - a.count);
 
-  const totalBugs    = MOCK_BUGS.length;
-  const openBugs     = MOCK_BUGS.filter((b) => b.status === "open").length;
-  const resolvedBugs = MOCK_BUGS.filter((b) => b.status === "resolved").length;
+  const totalBugs    = bugs.length;
+  const openBugs     = bugs.filter((b) => b.status === "open").length;
+  const resolvedBugs = bugs.filter((b) => b.status === "resolved").length;
 
   return (
     <>
@@ -79,18 +78,18 @@ export default function AdminPanel() {
                 <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
                 <tbody>
                   {users.map((u) => (
-                    <tr key={u._id}>
+                    <tr key={u.id}>
                       <td style={{ fontWeight:600 }}>{u.name}</td>
                       <td style={{ color:"#888", fontSize:"0.85rem" }}>{u.email}</td>
                       <td>
-                        <select value={u.role} onChange={(e) => changeRole(u._id, e.target.value)}
+                        <select value={u.role} onChange={(e) => changeRole(u.id, e.target.value)}
                           style={{ padding:"0.3rem 0.6rem", border:"1.5px solid #ddd", borderRadius:6, fontSize:"0.8rem" }}>
                           <option value="developer">Developer</option>
                           <option value="qa">QA</option>
                           <option value="admin">Admin</option>
                         </select>
                       </td>
-                      <td><button className="btn btn-danger btn-sm" onClick={() => deleteUser(u._id)}>Delete</button></td>
+                      <td><button className="btn btn-danger btn-sm" onClick={() => deleteUser(u.id)}>Delete</button></td>
                     </tr>
                   ))}
                 </tbody>
@@ -101,7 +100,7 @@ export default function AdminPanel() {
           <div className="card">
             <h3 style={{ marginBottom:"1rem" }}>Developer Workload</h3>
             {devWorkload.map((dev) => (
-              <div key={dev._id} style={{ marginBottom:"1rem" }}>
+              <div key={dev.id} style={{ marginBottom:"1rem" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"0.3rem" }}>
                   <span style={{ fontWeight:600, fontSize:"0.9rem" }}>{dev.name}</span>
                   <span style={{ fontSize:"0.85rem", color:"#888" }}>{dev.count} active bugs</span>

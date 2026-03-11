@@ -1,51 +1,60 @@
+import axios from "axios";
 import { createContext, useContext, useState } from "react";
+import { useEffect } from "react";
 
 const BugContext = createContext();
 
-const INITIAL_BUGS = [
-  { _id:"1", title:"Login page crashes on Safari",  description:"When a user tries to log in using Safari browser on macOS, the page crashes immediately.", severity:"critical",    aiSeverity:"critical",    status:"open",         priority:"high",   createdBy:{ name:"QA Tester" }, assignedTo:{ _id:"2", name:"Dev User" }, comments:[], createdAt: new Date(), updatedAt: new Date() },
-  { _id:"2", title:"Button color wrong on hover",   description:"The primary action button turns grey instead of dark blue when hovered.",                  severity:"trivial",     aiSeverity:"trivial",     status:"resolved",     priority:"low",    createdBy:{ name:"QA Tester" }, assignedTo:{ _id:"2", name:"Dev User" }, comments:[{ user:{ name:"Dev User" }, text:"Fixed in latest commit.", createdAt: new Date() }], createdAt: new Date(), updatedAt: new Date() },
-  { _id:"3", title:"Table overflows on mobile",     description:"On screen widths below 480px, the bug list table overflows the container.",                severity:"major",       aiSeverity:"major",       status:"in-progress",  priority:"medium", createdBy:{ name:"QA Tester" }, assignedTo:null,                          comments:[], createdAt: new Date(), updatedAt: new Date() },
-  { _id:"4", title:"Add dark mode support",         description:"Users have requested a dark mode toggle in the settings page.",                            severity:"enhancement", aiSeverity:"enhancement", status:"open",         priority:"low",    createdBy:{ name:"Admin" },     assignedTo:null,                          comments:[], createdAt: new Date(), updatedAt: new Date() },
-  { _id:"5", title:"App freezes on file upload",    description:"When uploading a file larger than 5MB the entire application becomes unresponsive.",       severity:"blocker",     aiSeverity:"blocker",     status:"under-review", priority:"high",   createdBy:{ name:"QA Tester" }, assignedTo:{ _id:"2", name:"Dev User" }, comments:[], createdAt: new Date(), updatedAt: new Date() },
-  { _id:"6", title:"Typo in settings page label",   description:"The word 'Acount' should be 'Account' in the settings page header.",                      severity:"trivial",     aiSeverity:"trivial",     status:"open",         priority:"low",    createdBy:{ name:"QA Tester" }, assignedTo:{ _id:"2", name:"Dev User" }, comments:[], createdAt: new Date(), updatedAt: new Date() },
-  { _id:"7", title:"Password reset email not sent", description:"Users report that the password reset email is never received after requesting it.",        severity:"critical",    aiSeverity:"critical",    status:"in-progress",  priority:"high",   createdBy:{ name:"Admin" },     assignedTo:{ _id:"2", name:"Dev User" }, comments:[], createdAt: new Date(), updatedAt: new Date() },
-  { _id:"8", title:"404 error on profile page",     description:"Navigating to /profile throws a 404 error for certain user IDs.",                         severity:"major",       aiSeverity:"major",       status:"open",         priority:"medium", createdBy:{ name:"QA Tester" }, assignedTo:null,                          comments:[], createdAt: new Date(), updatedAt: new Date() },
-];
-
 export const BugProvider = ({ children }) => {
-  const [bugs, setBugs] = useState(INITIAL_BUGS);
+  const bugPath = 'http://localhost:8080/api/bug'
+  const [bugs, setBugs] = useState([]); 
+  
 
-  const addBug = (bug) => {
-    const newBug = {
-      ...bug,
-      _id:       Date.now().toString(),
-      comments:  [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  useEffect(() => {
+    const fetchBugs = async () => {
+      try {
+        const res = await axios.get(bugPath);
+        setBugs(res.data);
+      } catch (err) {
+        console.error("Failed to fetch bugs", err);
+      }
     };
+    fetchBugs();
+  }, []);
+
+  const addBug = async (bug) => {
+    const res = await axios.post(bugPath,bug);
+    const newBug = res.data;
+
     setBugs((prev) => [newBug, ...prev]);
     return newBug;
   };
 
-  const updateBugStatus = (bugId, status) => {
-    setBugs((prev) => prev.map((b) => b._id === bugId ? { ...b, status, updatedAt: new Date() } : b));
+  const updateBugStatus = async (bugId, status) => {
+    const res = await axios.put(`${bugPath}/updateStatus`,{bugId, status})
+    const newBug = res.data;
+    setBugs((prev) => prev.map((b) => b.id === bugId ? { ...b, status: newBug.status, updatedAt: newBug.updatedAt } : b));
   };
 
-  const assignBug = (bugId, user) => {
-    setBugs((prev) => prev.map((b) => b._id === bugId ? { ...b, assignedTo: user, updatedAt: new Date() } : b));
+  const assignBug = async (bugId, user) => {
+    const res = await axios.put(`${bugPath}/updateAssignee`,{bugId, assignedUserId: user?.id})
+    const newBug = res.data;
+    setBugs((prev) => prev.map((b) => b.id === bugId ? { ...b, assignedUser: newBug.assignedUser, updatedAt: newBug.updatedAt } : b));
   };
 
   const addComment = (bugId, comment) => {
     setBugs((prev) => prev.map((b) =>
-      b._id === bugId ? { ...b, comments: [...b.comments, comment], updatedAt: new Date() } : b
+      b.id === bugId ? { ...b, comments: [...b.comments, comment], updatedAt: new Date() } : b
     ));
   };
 
-  const getBugById = (id) => bugs.find((b) => b._id === id);
+  const getAllBugsByUserId = (userId) => {
+    return bugs.filter(b => b.assignedUser.id === userId);
+  }
+
+  const getBugById = (id) => bugs.find((b) => b.id === id);
 
   return (
-    <BugContext.Provider value={{ bugs, addBug, updateBugStatus, assignBug, addComment, getBugById }}>
+    <BugContext.Provider value={{ bugs, addBug, updateBugStatus, assignBug, addComment, getBugById , getAllBugsByUserId }}>
       {children}
     </BugContext.Provider>
   );
