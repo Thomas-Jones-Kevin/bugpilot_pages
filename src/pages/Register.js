@@ -4,10 +4,29 @@ import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 
 export default function Register() {
-  const [form, setForm] = useState({ name:"", email:"", password:"", confirmPassword:"", role:"developer" });
+  const [form, setForm] = useState({ 
+    name: "", 
+    email: "", 
+    password: "", 
+    confirmPassword: "", 
+    role: "developer",
+    developerType: "",     // Added field
+    specialization: ""     // Added field
+  });
+  
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
-  const navigate     = useNavigate();
+  const navigate  = useNavigate();
+
+  const specializationsMap = {
+    "backend": ["api", "authentication", "database", "integration"],
+    "frontend": ["ui/ux", "integration", "mobile"],
+    "devops": ["ci/cd", "monitoring", "infrastructure"],
+    "security": ["authentication", "security"],
+  };
+
+  // Get the correct array of specializations based on the selected developerType
+  const availableSpecializations = specializationsMap[form.developerType] || [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +45,8 @@ export default function Register() {
 
     setLoading(true);
     try {
-      await register(form.name, form.email, form.password, form.role);
+      // Updated this line to include the two new fields
+      await register(form.name, form.email, form.password, form.role, form.developerType, form.specialization);
       toast.success("Account created successfully!");
       navigate("/dashboard");
     } catch (err) {
@@ -36,10 +56,8 @@ export default function Register() {
     }
   };
 
-  const passwordsMatch =
-    form.confirmPassword.length > 0 && form.password === form.confirmPassword;
-  const passwordsMismatch =
-    form.confirmPassword.length > 0 && form.password !== form.confirmPassword;
+  const passwordsMatch = form.confirmPassword.length > 0 && form.password === form.confirmPassword;
+  const passwordsMismatch = form.confirmPassword.length > 0 && form.password !== form.confirmPassword;
 
   return (
     <div className="auth-page">
@@ -75,11 +93,7 @@ export default function Register() {
               onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
               required
               style={{
-                borderColor: passwordsMatch
-                  ? "#2ecc71"
-                  : passwordsMismatch
-                  ? "#e74c3c"
-                  : "#ddd",
+                borderColor: passwordsMatch ? "#2ecc71" : passwordsMismatch ? "#e74c3c" : "#ddd",
               }}
             />
             {passwordsMatch && (
@@ -102,6 +116,47 @@ export default function Register() {
               <option value="admin">Admin</option>
             </select>
           </div>
+
+          {/* Added conditional fields for developers */}
+          {form.role === "developer" && (
+            <>
+              <div className="form-group">
+                <label>Developer Type</label>
+                <select 
+                  value={form.developerType}
+                  onChange={(e) => setForm({ ...form, developerType: e.target.value })} 
+                  required={form.role === "developer"}
+                >
+                  <option value="">Select type...</option>
+                  <option value="backend">backend</option>
+                  <option value="devops">devops</option>
+                  <option value="frontend">frontend</option>
+                  <option value="security">security</option>
+                </select>
+              </div>
+
+              {form.developerType && (
+                <div className="form-group">
+                  <label>Specialization</label>
+                  <select 
+                    value={form.specialization}
+                    onChange={(e) => setForm({ ...form, specialization: e.target.value })} 
+                    required={form.role === "developer"}
+                    disabled={!form.developerType} // Disables this dropdown until a type is chosen
+                  >
+                    <option value="">Select specialization...</option>
+                    
+                    {/* Dynamically create options from the array */}
+                    {availableSpecializations.map((spec) => (
+                      <option key={spec} value={spec}>
+                        {spec}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </>
+          )}
 
           <button className="btn btn-primary" style={{ width:"100%" }}
             disabled={loading || passwordsMismatch}>

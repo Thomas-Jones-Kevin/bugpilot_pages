@@ -3,34 +3,18 @@ import { useParams, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
-
-const MOCK_PROFILES = {
-  "1": { _id:"1", name:"Admin User", email:"admin@test.com",  role:"admin",     skills:["Management","Jira","Confluence"] },
-  "2": { _id:"2", name:"Dev User",   email:"dev@test.com",    role:"developer", skills:["React","Java","Spring Boot","MongoDB"] },
-  "3": { _id:"3", name:"QA Tester",  email:"qa@test.com",     role:"qa",        skills:["Selenium","Postman","JIRA","Manual Testing"] },
-};
-
-const MOCK_ASSIGNED = {
-  "2": [
-    { _id:"1", title:"Login page crashes on Safari",  severity:"critical", status:"open" },
-    { _id:"5", title:"App freezes on file upload",    severity:"blocker",  status:"under-review" },
-    { _id:"7", title:"Password reset email not sent", severity:"critical", status:"in-progress" },
-  ],
-  "3": [
-    { _id:"3", title:"Table overflows on mobile",  severity:"major",   status:"in-progress" },
-    { _id:"8", title:"404 error on profile page",  severity:"major",   status:"open" },
-  ],
-};
+import { useBugs } from "../context/BugContext";
 
 export default function Profile() {
   const { id }   = useParams();
   const { user } = useAuth();
+  const { getAllBugsByUserId } = useBugs();
 
-  const profileData   = MOCK_PROFILES[id] || MOCK_PROFILES["2"];
+  const profileData   = user;
   const [profile,     setProfile]   = useState(profileData);
   const [skills,      setSkills]    = useState(profileData.skills || []);
   const [skillInput,  setSkillInput] = useState("");
-  const assignedBugs  = MOCK_ASSIGNED[id] || [];
+  const assignedBugs  = getAllBugsByUserId(user.id);
 
   const workload = {
     open:           assignedBugs.filter((b) => b.status==="open").length,
@@ -39,7 +23,7 @@ export default function Profile() {
     resolved:       assignedBugs.filter((b) => b.status==="resolved").length,
   };
 
-  const isOwn = user?._id === id;
+  const isOwn = user?.id === id;
 
   const addSkill = () => {
     if (!skillInput.trim() || skills.includes(skillInput.trim())) return;
@@ -133,11 +117,11 @@ export default function Profile() {
                   <thead><tr><th>Title</th><th>Severity</th><th>Status</th><th></th></tr></thead>
                   <tbody>
                     {assignedBugs.map((b) => (
-                      <tr key={b._id}>
+                      <tr key={b.id}>
                         <td style={{ fontWeight:600 }}>{b.title}</td>
                         <td><span className={`badge badge-${b.severity}`}>{b.severity}</span></td>
                         <td><span className={`badge badge-${b.status}`}>{b.status}</span></td>
-                        <td><Link to={`/bugs/${b._id}`} className="btn btn-outline btn-sm">View</Link></td>
+                        <td><Link to={`/bugs/${b.id}`} className="btn btn-outline btn-sm">View</Link></td>
                       </tr>
                     ))}
                   </tbody>

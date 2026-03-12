@@ -7,12 +7,22 @@ import { useBugs } from "../context/BugContext";
 
 const mockPredict = (description) => {
   const d = description.toLowerCase();
-  if (d.includes("crash") || d.includes("freeze") || d.includes("unusable")) return "blocker";
-  if (d.includes("error") || d.includes("fail")   || d.includes("broken"))   return "critical";
-  if (d.includes("wrong") || d.includes("incorrect") || d.includes("not working")) return "major";
-  if (d.includes("feature") || d.includes("request") || d.includes("add"))   return "enhancement";
-  if (d.includes("typo") || d.includes("spelling") || d.includes("minor"))   return "trivial";
-  return "normal";
+
+ const rules = [
+    { keywords: ["crash", "freeze", "unusable"], value: "blocker:high" },
+    { keywords: ["error", "fail", "broken"], value: "critical:high" },
+    { keywords: ["wrong", "incorrect", "not working"], value: "major:normal" },
+    { keywords: ["feature", "request", "add"], value: "enhancement:normal" },
+    { keywords: ["typo", "spelling", "minor"], value: "trivial:low" }
+  ];
+
+  // Find the first rule where at least one keyword matches the description
+  const matchedRule = rules.find(rule => 
+    rule.keywords.some(k => d.includes(k))
+  );
+
+  const res = matchedRule ? matchedRule.value : "normal:low";
+  return res;
 };
 
 export default function CreateBug() {
@@ -22,33 +32,37 @@ export default function CreateBug() {
 
   const [form,       setForm]       = useState({ title:"", description:"", severity:"normal", priority:"medium" });
   const [aiSeverity, setAiSeverity] = useState("");
+  const [aiPrioriy,  setAiPrioriy] = useState("");
   const [predicting, setPredicting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const predictSeverity = () => {
+  const predict = () => {
     if (!form.description.trim()) return toast.warning("Enter a description first");
     setPredicting(true);
     setTimeout(() => {
       const predicted = mockPredict(form.description);
-      setAiSeverity(predicted);
-      setForm((prev) => ({ ...prev, severity: predicted }));
-      toast.success(`AI predicted: ${predicted.toUpperCase()}`);
+      const severity = predicted.split(":")[0];
+      const priority = predicted.split(":")[1];
+      setAiSeverity(severity);
+      setAiPrioriy(priority)
+      setForm((prev) => ({ ...prev, severity, priority }));
+      toast.success(`AI predicted: severity:${severity.toUpperCase()} and prioriy:${priority.toUpperCase()}`);
       setPredicting(false);
     }, 800);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    const newBug = addBug({
+    const newBug = await addBug({
       ...form,
-      aiSeverity,
-      screenshots: [],
-      createdBy:   { name: user?.name },
-      assignedTo:  null,
+      createdBy: user?.id,
+      assignedUserId:  null,
     });
+
+    console.log(newBug)
     toast.success("Bug reported successfully!");
-    navigate(`/bugs/${newBug._id}`);
+    navigate(`/bugs/${newBug.id}`);
   };
 
   return (
@@ -71,13 +85,19 @@ export default function CreateBug() {
               <textarea placeholder="Describe the bug in detail..." value={form.description} rows={5}
                 onChange={(e) => setForm({ ...form, description: e.target.value })} required />
               <button type="button" className="btn btn-outline btn-sm" style={{ marginTop:"0.5rem" }}
-                onClick={predictSeverity} disabled={predicting}>
-                {predicting ? "Predicting..." : "🤖 Predict Severity with AI"}
+                onClick={predict} disabled={predicting}>
+                {predicting ? "Predicting..." : "🤖 Predict with AI"}
               </button>
               {aiSeverity && (
                 <div style={{ marginTop:"0.5rem", padding:"0.6rem 1rem", background:"#f0e6ff", borderRadius:8, fontSize:"0.85rem" }}>
                   🤖 AI Prediction: <strong><span className={`badge badge-${aiSeverity}`}>{aiSeverity}</span></strong>
                   <span style={{ color:"#888", marginLeft:"0.5rem" }}>(applied to severity below)</span>
+                </div>
+              )}
+              {aiPrioriy && (
+                <div style={{ marginTop:"0.5rem", padding:"0.6rem 1rem", background:"#f0e6ff", borderRadius:8, fontSize:"0.85rem" }}>
+                  🤖 AI Prediction: <strong><span className={`badge badge-${aiSeverity}`}>{aiPrioriy}</span></strong>
+                  <span style={{ color:"#888", marginLeft:"0.5rem" }}>(applied to priority below)</span>
                 </div>
               )}
             </div>

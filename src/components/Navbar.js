@@ -14,13 +14,13 @@ export default function Navbar() {
         <Link to="/dashboard">Dashboard</Link>
         <Link to="/bugs">Bugs</Link>
         <Link to="/board">Board</Link>
-        {["qa","admin"].includes(user?.role) && (
+        {["qa"].includes(user?.role) && (
           <Link to="/bugs/new">+ Report Bug</Link>
         )}
         {user?.role === "admin" && (
           <Link to="/admin">Admin</Link>
         )}
-        <Link to={`/profile/${user?._id}`}>👤 {user?.name}</Link>
+        <Link to={`/profile/${user?.id}`}>👤 {user?.name}</Link>
         <button onClick={handleLogout}>Logout</button>
       </div>
     </nav>

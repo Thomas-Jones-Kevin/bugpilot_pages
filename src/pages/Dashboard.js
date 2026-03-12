@@ -12,7 +12,7 @@ export default function Dashboard() {
   const inProgress = bugs.filter((b) => b.status === "in-progress").length;
   const resolved   = bugs.filter((b) => b.status === "resolved").length;
   const critical   = bugs.filter((b) => b.severity === "critical" || b.severity === "blocker").length;
-  const myBugs     = bugs.filter((b) => b.assignedTo?._id === user?._id);
+  const myBugs     = bugs.filter((b) => b.assignedUser?.id === user?.id);
 
   return (
     <>
@@ -55,7 +55,7 @@ export default function Dashboard() {
               <Link to="/bugs" style={{ fontSize:"0.85rem", color:"#4f8ef7", textDecoration:"none" }}>View all</Link>
             </div>
             {bugs.slice(0,5).map((b) => (
-              <Link to={`/bugs/${b._id}`} key={b._id} style={{ textDecoration:"none", color:"inherit" }}>
+              <Link to={`/bugs/${b.id}`} key={b.id} style={{ textDecoration:"none", color:"inherit" }}>
                 <div style={{ padding:"0.7rem 0", borderBottom:"1px solid #f0f0f0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                   <div>
                     <div style={{ fontWeight:600, fontSize:"0.9rem" }}>{b.title}</div>
@@ -74,7 +74,7 @@ export default function Dashboard() {
               {myBugs.length === 0
                 ? <p style={{ color:"#aaa", fontSize:"0.9rem" }}>No bugs assigned to you.</p>
                 : myBugs.map((b) => (
-                  <Link to={`/bugs/${b._id}`} key={b._id} style={{ textDecoration:"none", color:"inherit" }}>
+                  <Link to={`/bugs/${b.id}`} key={b.id} style={{ textDecoration:"none", color:"inherit" }}>
                     <div style={{ padding:"0.7rem 0", borderBottom:"1px solid #f0f0f0", display:"flex", justifyContent:"space-between" }}>
                       <span style={{ fontWeight:600, fontSize:"0.9rem" }}>{b.title}</span>
                       <span className={`badge badge-${b.status}`}>{b.status}</span>

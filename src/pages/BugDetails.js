@@ -1,22 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import { useBugs } from "../context/BugContext";
 
-const MOCK_USERS = [
-  { _id:"2", name:"Dev User",  role:"developer" },
-  { _id:"3", name:"Dev Smith", role:"developer" },
-];
-
 export default function BugDetails() {
-  const { id }    = useParams();
-  const { user }  = useAuth();
+  const { id: stringId } = useParams();
+  const id = Number(stringId);
+
+  const [users, setUsers] = useState([]);
+  const { user, getAllUsersType }  = useAuth();
   const { getBugById, updateBugStatus, assignBug, addComment } = useBugs();
 
   const bug = getBugById(id);
   const [comment, setComment] = useState("");
+  console.log(bug)
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const data = await getAllUsersType("developer");
+        // Fallback to empty array if data is undefined
+        setUsers(data || []); 
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+        setUsers([]); // Safeguard on error
+      }
+    };
+    fetchUsers();
+  },[])
 
   if (!bug) return (
     <>
@@ -31,7 +44,8 @@ export default function BugDetails() {
   };
 
   const handleAssign = (userId) => {
-    const found = MOCK_USERS.find((u) => u._id === userId) || null;
+    console.log(userId)
+    const found = users.find((u) => u.id == userId) || null;
     assignBug(id, found);
     toast.success(found ? `Assigned to ${found.name}` : "Unassigned");
   };
@@ -100,7 +114,7 @@ export default function BugDetails() {
               <h4 style={{ marginBottom:"0.8rem" }}>Change Status</h4>
               {["open","in-progress","under-review","resolved"].map((s) => (
                 <button key={s} onClick={() => changeStatus(s)}
-                  className={`btn btn-sm ${bug.status===s?"btn-primary":"btn-outline"}`}
+                  className={`btn btn-sm ${bug.status.toLowerCase() === s?"btn-primary":"btn-outline"}`}
                   style={{ display:"block", width:"100%", marginBottom:"0.5rem", textAlign:"left" }}>
                   {s.replace("-"," ").replace(/\b\w/g,(l)=>l.toUpperCase())}
                 </button>
@@ -111,19 +125,19 @@ export default function BugDetails() {
               <div className="card">
                 <h4 style={{ marginBottom:"0.8rem" }}>Assign To</h4>
                 <select onChange={(e) => handleAssign(e.target.value)}
-                  defaultValue={bug.assignedTo?._id || ""}
+                  defaultValue={bug.assignedUser?.id || ""}
                   style={{ width:"100%", padding:"0.6rem", border:"1.5px solid #ddd", borderRadius:8, outline:"none" }}>
                   <option value="">Unassigned</option>
-                  {MOCK_USERS.map((u) => <option key={u._id} value={u._id}>{u.name}</option>)}
+                  {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
                 </select>
-                {bug.assignedTo && <p style={{ marginTop:"0.5rem", fontSize:"0.82rem", color:"#555" }}>Currently: <strong>{bug.assignedTo.name}</strong></p>}
+                {bug.assignedUser && <p style={{ marginTop:"0.5rem", fontSize:"0.82rem", color:"#555" }}>Currently: <strong>{bug.assignedUser.name}</strong></p>}
               </div>
             )}
 
             <div className="card">
               <h4 style={{ marginBottom:"0.8rem" }}>Bug Info</h4>
               {[
-                { label:"ID",       value: bug._id },
+                { label:"ID",       value: bug.id },
                 { label:"Priority", value: bug.priority },
                 { label:"Created",  value: new Date(bug.createdAt).toLocaleDateString() },
                 { label:"Updated",  value: new Date(bug.updatedAt).toLocaleDateString() },
