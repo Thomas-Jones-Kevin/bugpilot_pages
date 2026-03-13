@@ -3,6 +3,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { BugProvider } from "./context/BugContext";
+import BugReport from "./pages/BugReport";
 
 import Landing    from "./pages/Landing";
 import Login      from "./pages/Login";
@@ -37,6 +38,7 @@ const AppRoutes = () => {
       <Route path="/board"       element={<PrivateRoute><TaskBoard /></PrivateRoute>} />
       <Route path="/admin"       element={<PrivateRoute roles={["admin"]}><AdminPanel /></PrivateRoute>} />
       <Route path="/profile/:id" element={<PrivateRoute><Profile /></PrivateRoute>} />
+      <Route path="/report" element={<PrivateRoute><BugReport /></PrivateRoute>} />
       <Route path="*"            element={<Navigate to="/" />} />
     </Routes>
   );

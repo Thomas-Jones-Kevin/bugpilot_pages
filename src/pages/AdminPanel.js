@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";

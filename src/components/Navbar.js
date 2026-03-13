@@ -14,6 +14,7 @@ export default function Navbar() {
         <Link to="/dashboard">Dashboard</Link>
         <Link to="/bugs">Bugs</Link>
         <Link to="/board">Board</Link>
+        <Link to="/report">📄 Report</Link>
         {["qa"].includes(user?.role) && (
           <Link to="/bugs/new">+ Report Bug</Link>
         )}
