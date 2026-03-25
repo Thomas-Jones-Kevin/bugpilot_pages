@@ -141,14 +141,14 @@ export default function BugReport() {
           </select>
           <select value={filters.severity} onChange={(e) => setFilters({ ...filters, severity: e.target.value })}>
             <option value="">All Severity</option>
-            {["blocker","critical","major","normal","minor","trivial","enhancement"].map((s) => (
+            {["major","normal","minor","trivial"].map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
           <select value={filters.priority} onChange={(e) => setFilters({ ...filters, priority: e.target.value })}>
             <option value="">All Priority</option>
             <option value="high">High</option>
-            <option value="medium">Medium</option>
+            <option value="normal">normal</option>
             <option value="low">Low</option>
           </select>
           {(filters.status || filters.severity || filters.priority) && (
