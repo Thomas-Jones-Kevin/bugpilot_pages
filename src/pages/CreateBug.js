@@ -4,25 +4,22 @@ import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import { useBugs } from "../context/BugContext";
+import axios from "axios";
 
-const mockPredict = (description) => {
+const mockPredict = async (description) => {
   const d = description.toLowerCase();
+  const payload = {description: d}
 
- const rules = [
-    { keywords: ["crash", "freeze", "unusable"], value: "blocker:high" },
-    { keywords: ["error", "fail", "broken"], value: "critical:high" },
-    { keywords: ["wrong", "incorrect", "not working"], value: "major:normal" },
-    { keywords: ["feature", "request", "add"], value: "enhancement:normal" },
-    { keywords: ["typo", "spelling", "minor"], value: "trivial:low" }
-  ];
+  const res = await axios.post("http://localhost:8080/api/bug/severity", payload)
 
-  // Find the first rule where at least one keyword matches the description
-  const matchedRule = rules.find(rule => 
-    rule.keywords.some(k => d.includes(k))
-  );
+  const severity = res.data;
 
-  const res = matchedRule ? matchedRule.value : "normal:low";
-  return res;
+ const rules = {"major":"major:high",
+                "minor":"minor:low",
+                "trivial":"trivial:low",
+                "normal":"normal:medium"}
+  console.log(rules[severity])
+  return rules[severity];
 };
 
 export default function CreateBug() {
@@ -36,19 +33,17 @@ export default function CreateBug() {
   const [predicting, setPredicting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const predict = () => {
+  const predict = async () => {
     if (!form.description.trim()) return toast.warning("Enter a description first");
     setPredicting(true);
-    setTimeout(() => {
-      const predicted = mockPredict(form.description);
-      const severity = predicted.split(":")[0];
-      const priority = predicted.split(":")[1];
-      setAiSeverity(severity);
-      setAiPrioriy(priority)
-      setForm((prev) => ({ ...prev, severity, priority }));
-      toast.success(`AI predicted: severity:${severity.toUpperCase()} and prioriy:${priority.toUpperCase()}`);
-      setPredicting(false);
-    }, 800);
+    const predicted = await mockPredict(form.description);
+    const severity = predicted.split(":")[0];
+    const priority = predicted.split(":")[1];
+    setAiSeverity(severity);
+    setAiPrioriy(priority)
+    setForm((prev) => ({ ...prev, severity, priority }));
+    toast.success(`AI predicted: severity:${severity.toUpperCase()} and prioriy:${priority.toUpperCase()}`);
+    setPredicting(false);
   };
 
   const handleSubmit = async (e) => {
