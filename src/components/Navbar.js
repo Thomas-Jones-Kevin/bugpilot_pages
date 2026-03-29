@@ -1,6 +1,11 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => { logout(); navigate("/"); };
   const location = useLocation();
 
   const navItems = [
@@ -33,7 +38,7 @@ export default function Navbar() {
 
       <div style={styles.footer}>
         <div style={styles.user}>Admin User</div>
-        <button style={styles.logout}>Logout</button>
+        <button onClick={handleLogout} style={styles.logout}>Logout</button>
       </div>
     </div>
   );
