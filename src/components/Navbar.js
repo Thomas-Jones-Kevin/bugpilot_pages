@@ -8,6 +8,7 @@ export default function Navbar() {
     { name: "Bugs", path: "/bugs" },
     { name: "Board", path: "/board" },
     { name: "Report", path: "/bugs/new" },
+    { name: "Download Bug-reports", path: "/report" }, // ✅ NEW MENU
     { name: "Admin", path: "/admin" },
   ];
 
