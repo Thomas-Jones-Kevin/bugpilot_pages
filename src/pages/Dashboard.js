@@ -20,7 +20,6 @@ const styles = `
     min-width: 0;
   }
 
-  /* ── HEADER ── */
   .db-header {
     margin-bottom: 24px;
   }
@@ -51,7 +50,6 @@ const styles = `
     letter-spacing: 0.5px;
   }
 
-  /* ── STAT CARDS ── */
   .db-stats {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -105,7 +103,6 @@ const styles = `
     height: 56px;
   }
 
-  /* ── REPORT BUG BUTTON ── */
   .db-report-btn {
     display: flex;
     align-items: center;
@@ -130,7 +127,6 @@ const styles = `
     transform: translateY(-1px);
   }
 
-  /* ── BOTTOM GRID ── */
   .db-bottom {
     display: grid;
     grid-template-columns: 1fr 320px;
@@ -138,7 +134,6 @@ const styles = `
     align-items: start;
   }
 
-  /* ── CARD ── */
   .db-card {
     background: #fff;
     border-radius: 16px;
@@ -153,7 +148,6 @@ const styles = `
     margin: 0 0 20px 0;
   }
 
-  /* ── RECENT BUGS TABLE ── */
   .db-table {
     width: 100%;
     border-collapse: collapse;
@@ -178,7 +172,6 @@ const styles = `
   }
 
   .db-table tr:last-child td { border-bottom: none; }
-
   .db-table tr:hover td { background: #f8fafc; }
 
   .db-bug-id {
@@ -221,7 +214,6 @@ const styles = `
     white-space: nowrap;
   }
 
-  /* ── BADGES ── */
   .db-badge {
     display: inline-block;
     padding: 3px 12px;
@@ -235,19 +227,17 @@ const styles = `
   .db-badge-in-progress { background: #fef3cd; color: #d97706; }
   .db-badge-resolved    { background: #dcfce7; color: #16a34a; }
   .db-badge-review      { background: #ede9fe; color: #7c3aed; }
-
   .db-badge-critical    { background: #ef4444; color: #fff; }
   .db-badge-high        { background: #f97316; color: #fff; }
   .db-badge-medium      { background: #eab308; color: #fff; }
   .db-badge-low         { background: #22c55e; color: #fff; }
   .db-badge-blocker     { background: #7f1d1d; color: #fff; }
 
-  /* ── QUICK LINKS ── */
   .db-quick-link {
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 14px 0;
+    padding: 14px 8px;
     border-bottom: 1px solid #f1f5f9;
     text-decoration: none;
     transition: background 0.15s;
@@ -255,7 +245,6 @@ const styles = `
   }
 
   .db-quick-link:last-child { border-bottom: none; }
-
   .db-quick-link:hover { background: #f8fafc; }
 
   .db-ql-icon {
@@ -270,7 +259,6 @@ const styles = `
     font-size: 16px;
   }
 
-  .db-ql-text {}
   .db-ql-label {
     font-size: 14px;
     font-weight: 700;
@@ -278,6 +266,7 @@ const styles = `
     display: block;
     margin-bottom: 2px;
   }
+
   .db-ql-desc {
     font-size: 12px;
     color: #94a3b8;
@@ -294,16 +283,8 @@ const styles = `
   }
 `;
 
-// Mini sparkline SVG per card color
-function Sparkline({ color, fill }) {
-  const paths = [
-    "M0,40 C20,38 40,30 60,28 C80,26 100,32 120,28 C140,24 160,18 180,20 C200,22 220,16 240,14",
-    "M0,42 C20,40 40,36 60,30 C80,24 100,28 120,22 C140,16 160,20 180,16 C200,12 220,18 240,12",
-    "M0,38 C20,36 40,34 60,32 C80,30 100,34 120,28 C140,22 160,26 180,20 C200,14 220,18 240,16",
-    "M0,40 C20,36 40,30 60,26 C80,22 100,28 120,22 C140,16 160,20 180,14 C200,8  220,12 240,10",
-    "M0,44 C20,40 40,36 60,30 C80,24 100,20 120,16 C140,12 160,14 180,10 C200,6  220,10 240,8",
-  ];
-  const idx = Math.floor(Math.random() * paths.length);
+function Sparkline({ color }) {
+  const path = "M0,40 C20,38 40,30 60,28 C80,26 100,32 120,28 C140,24 160,18 180,20 C200,22 220,16 240,14";
   return (
     <svg viewBox="0 0 240 56" preserveAspectRatio="none">
       <defs>
@@ -312,19 +293,11 @@ function Sparkline({ color, fill }) {
           <stop offset="100%" stopColor={color} stopOpacity="0"/>
         </linearGradient>
       </defs>
-      <path d={paths[0] + " L240,56 L0,56 Z"} fill={`url(#g${color.replace("#","")})`}/>
-      <path d={paths[0]} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>
+      <path d={path + " L240,56 L0,56 Z"} fill={`url(#g${color.replace("#","")})`}/>
+      <path d={path} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>
     </svg>
   );
 }
-
-const statCards = (total, open, inProgress, resolved, critical) => [
-  { label: "Total Bugs",  value: total,      bg: "#2563eb", icon: "🐛",  chartColor: "#93c5fd" },
-  { label: "Open",        value: open,       bg: "#dc2626", icon: "📂",  chartColor: "#fca5a5" },
-  { label: "In Progress", value: inProgress, bg: "#d97706", icon: "⚙️",  chartColor: "#fcd34d" },
-  { label: "Resolved",    value: resolved,   bg: "#16a34a", icon: "✅",  chartColor: "#86efac" },
-  { label: "Critical",    value: critical,   bg: "#7c3aed", icon: "⚠️",  chartColor: "#c4b5fd" },
-];
 
 function getInitials(name = "") {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -332,17 +305,16 @@ function getInitials(name = "") {
 
 function formatDate(dateStr) {
   if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 function statusBadgeClass(status) {
-  const map = { open: "db-badge-open", "in-progress": "db-badge-in-progress", resolved: "db-badge-resolved", review: "db-badge-review" };
+  const map = { open:"db-badge-open", "in-progress":"db-badge-in-progress", resolved:"db-badge-resolved", review:"db-badge-review" };
   return map[status] || "db-badge-open";
 }
 
 function severityBadgeClass(sev) {
-  const map = { critical: "db-badge-critical", high: "db-badge-high", medium: "db-badge-medium", low: "db-badge-low", blocker: "db-badge-blocker" };
+  const map = { critical:"db-badge-critical", high:"db-badge-high", medium:"db-badge-medium", low:"db-badge-low", blocker:"db-badge-blocker" };
   return map[sev] || "db-badge-medium";
 }
 
@@ -357,13 +329,19 @@ export default function Dashboard() {
   const critical   = bugs.filter((b) => b.severity === "critical" || b.severity === "blocker").length;
   const myBugs     = bugs.filter((b) => b.assignedUser?.id === user?.id);
 
-  const cards = statCards(total, open, inProgress, resolved, critical);
+  const cards = [
+    { label:"Total Bugs",  value: total,      bg:"#2563eb", icon:"🐛",  chartColor:"#93c5fd" },
+    { label:"Open",        value: open,       bg:"#dc2626", icon:"📂",  chartColor:"#fca5a5" },
+    { label:"In Progress", value: inProgress, bg:"#d97706", icon:"⚙️",  chartColor:"#fcd34d" },
+    { label:"Resolved",    value: resolved,   bg:"#16a34a", icon:"✅",  chartColor:"#86efac" },
+    { label:"Critical",    value: critical,   bg:"#7c3aed", icon:"⚠️",  chartColor:"#c4b5fd" },
+  ];
 
   const quickLinks = [
-    { to: "/bugs",     icon: "📋", label: "Bug List",    desc: "View all reported bugs",      hide: false },
-    { to: "/board",    icon: "📌", label: "Task Board",  desc: "Kanban view of all bugs",     hide: false },
-    { to: "/bugs/new", icon: "➕", label: "Report Bug",  desc: "Submit a new bug",            hide: user?.role === "developer" },
-    { to: "/admin",    icon: "⚙️", label: "Admin Panel", desc: "Manage users & roles",        hide: user?.role !== "admin" },
+    { to:"/bugs",     icon:"📋", label:"Bug List",    desc:"View all reported bugs" },
+    { to:"/board",    icon:"📌", label:"Task Board",  desc:"Kanban view of all bugs" },
+    { to:"/bugs/new", icon:"➕", label:"Report Bug",  desc:"Submit a new bug",      hide: user?.role === "developer" },
+    { to:"/admin",    icon:"⚙️", label:"Admin Panel", desc:"Manage users & roles",  hide: user?.role !== "admin" },
   ].filter((l) => !l.hide);
 
   return (
@@ -371,8 +349,8 @@ export default function Dashboard() {
       <style>{styles}</style>
       <div className="db-root">
         <Navbar />
-
         <main className="db-main">
+
           {/* Header */}
           <div className="db-header">
             <h1 className="db-title">Dashboard</h1>
@@ -381,6 +359,13 @@ export default function Dashboard() {
               <span className="db-role-badge">{user?.role?.toUpperCase()}</span>
             </p>
           </div>
+
+          {/* Report Bug button — QA only */}
+          {user?.role === "qa" && (
+            <Link to="/bugs/new" className="db-report-btn">
+              ➕ Report a New Bug
+            </Link>
+          )}
 
           {/* Stat Cards */}
           <div className="db-stats">
@@ -407,7 +392,7 @@ export default function Dashboard() {
             <div className="db-card">
               <h3 className="db-card-title">Recent Bugs</h3>
               {bugs.length === 0 ? (
-                <p style={{ color: "#94a3b8", fontSize: 14 }}>No bugs reported yet.</p>
+                <p style={{ color:"#94a3b8", fontSize:14 }}>No bugs reported yet.</p>
               ) : (
                 <table className="db-table">
                   <thead>
@@ -415,14 +400,14 @@ export default function Dashboard() {
                       <th>ID</th>
                       <th>Title</th>
                       <th>Status</th>
-                      <th>Priority</th>
+                      <th>Severity</th>
                       <th>Assignee</th>
                       <th>Date</th>
                     </tr>
                   </thead>
                   <tbody>
                     {bugs.slice(0, 6).map((b) => (
-                      <tr key={b.id} style={{ cursor: "pointer" }}
+                      <tr key={b.id} style={{ cursor:"pointer" }}
                         onClick={() => window.location.href = `/bugs/${b.id}`}>
                         <td className="db-bug-id">#{b.id?.toString().padStart(3,"0") || "—"}</td>
                         <td className="db-bug-title">{b.title}</td>
@@ -439,7 +424,7 @@ export default function Dashboard() {
                         <td>
                           <div className="db-assignee">
                             <div className="db-avatar">{getInitials(b.assignedUser?.name)}</div>
-                            {b.assignedUser?.name?.split(" ")[0]} {b.assignedUser?.name?.split(" ")[1]?.[0]}.
+                            <span>{b.assignedUser?.name?.split(" ")[0] || "—"}</span>
                           </div>
                         </td>
                         <td className="db-date">{formatDate(b.createdAt)}</td>
@@ -450,19 +435,19 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Quick Links or My Bugs */}
+            {/* My Bugs (dev) or Quick Links (admin/qa) */}
             {user?.role === "developer" ? (
               <div className="db-card">
                 <h3 className="db-card-title">My Assigned Bugs</h3>
                 {myBugs.length === 0 ? (
-                  <p style={{ color: "#94a3b8", fontSize: 14 }}>No bugs assigned to you.</p>
+                  <p style={{ color:"#94a3b8", fontSize:14 }}>No bugs assigned to you.</p>
                 ) : (
                   myBugs.slice(0, 5).map((b) => (
-                    <Link to={`/bugs/${b.id}`} key={b.id} className="db-quick-link" style={{ paddingLeft: 8, paddingRight: 8 }}>
-                      <div className="db-ql-text">
+                    <Link to={`/bugs/${b.id}`} key={b.id} className="db-quick-link">
+                      <div>
                         <span className="db-ql-label">{b.title}</span>
                         <span className="db-ql-desc">
-                          <span className={`db-badge ${statusBadgeClass(b.status)}`} style={{ fontSize: 11, padding: "2px 8px" }}>
+                          <span className={`db-badge ${statusBadgeClass(b.status)}`} style={{ fontSize:11, padding:"2px 8px" }}>
                             {b.status}
                           </span>
                         </span>
@@ -475,9 +460,9 @@ export default function Dashboard() {
               <div className="db-card">
                 <h3 className="db-card-title">Quick Links</h3>
                 {quickLinks.map((l) => (
-                  <Link to={l.to} key={l.to} className="db-quick-link" style={{ paddingLeft: 8, paddingRight: 8 }}>
+                  <Link to={l.to} key={l.to} className="db-quick-link">
                     <div className="db-ql-icon">{l.icon}</div>
-                    <div className="db-ql-text">
+                    <div>
                       <span className="db-ql-label">{l.label}</span>
                       <span className="db-ql-desc">{l.desc}</span>
                     </div>

@@ -12,14 +12,12 @@ export default function BugReport() {
     (!filters.priority || b.priority === filters.priority)
   ));
 
-  // ── Stats for report header ──────────────────────────────
   const total      = filtered.length;
   const open       = filtered.filter((b) => b.status === "open").length;
   const inProgress = filtered.filter((b) => b.status === "in-progress").length;
   const resolved   = filtered.filter((b) => b.status === "resolved").length;
   const critical   = filtered.filter((b) => b.severity === "critical" || b.severity === "blocker").length;
 
-  // ── CSV Download ─────────────────────────────────────────
   const downloadCSV = () => {
     const headers = ["ID","Title","Severity","AI Severity","Priority","Status","Assigned To","Created By","Created At"];
     const rows = filtered.map((b) => [
@@ -43,7 +41,6 @@ export default function BugReport() {
     URL.revokeObjectURL(url);
   };
 
-  // ── HTML/Print Download ───────────────────────────────────
   const downloadHTML = () => {
     const severityColors = {
       blocker:"#c0392b", critical:"#e74c3c", major:"#e67e22",
@@ -88,7 +85,7 @@ export default function BugReport() {
   </style>
 </head>
 <body>
-  <h1>🐛 BugTracker — Bug Report</h1>
+  <h1>🐛 BugPilot — Bug Report</h1>
   <p class="sub">Generated on ${new Date().toLocaleString()} &nbsp;|&nbsp; Total bugs: ${total}</p>
   <div class="stats">
     <div class="stat"><div class="val" style="color:#4f8ef7">${total}</div><div class="lbl">Total</div></div>
@@ -118,104 +115,104 @@ export default function BugReport() {
   return (
     <>
       <Navbar />
-      <div className="page">
-        <div className="page-header">
+      {/* ── FIX: push content right past the 240px fixed sidebar ── */}
+      <div style={{ marginLeft: "240px", padding: "32px 32px 48px", minHeight: "100vh", background: "#f1f4f8", fontFamily: "'Inter', sans-serif" }}>
+
+        {/* Header */}
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"24px" }}>
           <div>
-            <h1 className="page-title">📄 Bug Report</h1>
-            <p style={{ color:"#888", fontSize:"0.9rem" }}>Filter and download the bug list as CSV or HTML</p>
+            <h1 style={{ fontSize:26, fontWeight:800, color:"#0f172a", margin:"0 0 4px", letterSpacing:"-0.5px" }}>📄 Bug Report</h1>
+            <p style={{ color:"#64748b", fontSize:14, margin:0 }}>Filter and download the bug list as CSV or HTML</p>
           </div>
-          <div style={{ display:"flex", gap:"0.8rem" }}>
-            <button className="btn btn-outline" onClick={downloadCSV}>⬇ Download CSV</button>
-            <button className="btn btn-primary" onClick={downloadHTML}>⬇ Download HTML Report</button>
+          <div style={{ display:"flex", gap:"12px" }}>
+            <button onClick={downloadCSV}
+              style={{ padding:"10px 20px", border:"1.5px solid #2563eb", borderRadius:10, background:"#fff", color:"#2563eb", fontWeight:700, fontSize:14, cursor:"pointer" }}>
+              ⬇ Download CSV
+            </button>
+            <button onClick={downloadHTML}
+              style={{ padding:"10px 20px", border:"none", borderRadius:10, background:"#2563eb", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", boxShadow:"0 4px 14px rgba(37,99,235,0.3)" }}>
+              ⬇ Download HTML Report
+            </button>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="filters">
-          <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
-            <option value="">All Status</option>
-            <option value="open">Open</option>
-            <option value="in-progress">In Progress</option>
-            <option value="under-review">Under Review</option>
-            <option value="resolved">Resolved</option>
-          </select>
-          <select value={filters.severity} onChange={(e) => setFilters({ ...filters, severity: e.target.value })}>
-            <option value="">All Severity</option>
-            {["major","normal","minor","trivial"].map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-          <select value={filters.priority} onChange={(e) => setFilters({ ...filters, priority: e.target.value })}>
-            <option value="">All Priority</option>
-            <option value="high">High</option>
-            <option value="normal">normal</option>
-            <option value="low">Low</option>
-          </select>
+        <div style={{ display:"flex", gap:"12px", marginBottom:"24px", flexWrap:"wrap" }}>
+          {[
+            { val: filters.status,   key:"status",   label:"All Status",   opts:[["open","Open"],["in-progress","In Progress"],["under-review","Under Review"],["resolved","Resolved"]] },
+            { val: filters.severity, key:"severity",  label:"All Severity", opts:[["major","Major"],["normal","Normal"],["minor","Minor"],["trivial","Trivial"]] },
+            { val: filters.priority, key:"priority",  label:"All Priority", opts:[["high","High"],["normal","Normal"],["low","Low"]] },
+          ].map((f) => (
+            <select key={f.key} value={f.val}
+              onChange={(e) => setFilters({ ...filters, [f.key]: e.target.value })}
+              style={{ padding:"9px 14px", border:"1.5px solid #e2e8f0", borderRadius:10, fontSize:14, color:"#0f172a", background:"#fff", outline:"none", cursor:"pointer" }}>
+              <option value="">{f.label}</option>
+              {f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          ))}
           {(filters.status || filters.severity || filters.priority) && (
-            <button className="btn btn-outline btn-sm"
-              onClick={() => setFilters({ status:"", severity:"", priority:"" })}>
-              ✕ Clear Filters
+            <button onClick={() => setFilters({ status:"", severity:"", priority:"" })}
+              style={{ padding:"9px 14px", border:"1.5px solid #e2e8f0", borderRadius:10, fontSize:14, background:"#fff", color:"#64748b", cursor:"pointer" }}>
+              ✕ Clear
             </button>
           )}
         </div>
 
-        {/* Summary Stats */}
-        <div className="stats-grid" style={{ marginBottom:"1.5rem" }}>
+        {/* Stat Cards */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:16, marginBottom:24 }}>
           {[
-            { label:"Total Bugs",  value: total,      color:"#4f8ef7" },
-            { label:"Open",        value: open,       color:"#e74c3c" },
-            { label:"In Progress", value: inProgress, color:"#e67e22" },
-            { label:"Resolved",    value: resolved,   color:"#2ecc71" },
-            { label:"Critical",    value: critical,   color:"#c0392b" },
+            { label:"Total Bugs",  value: total,      color:"#2563eb" },
+            { label:"Open",        value: open,       color:"#dc2626" },
+            { label:"In Progress", value: inProgress, color:"#d97706" },
+            { label:"Resolved",    value: resolved,   color:"#16a34a" },
+            { label:"Critical",    value: critical,   color:"#7c3aed" },
           ].map((s) => (
-            <div className="stat-card" key={s.label}>
-              <div className="stat-label">{s.label}</div>
-              <div className="stat-value" style={{ color: s.color }}>{s.value}</div>
+            <div key={s.label} style={{ background:"#fff", borderRadius:16, padding:"20px 22px", boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
+              <div style={{ fontSize:13, fontWeight:600, color:"#64748b", marginBottom:6 }}>{s.label}</div>
+              <div style={{ fontSize:36, fontWeight:800, color:s.color, lineHeight:1 }}>{s.value}</div>
             </div>
           ))}
         </div>
 
         {/* Preview Table */}
-        <div className="card">
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"1rem" }}>
-            <h3>Preview ({filtered.length} bugs)</h3>
-            <span style={{ fontSize:"0.8rem", color:"#aaa" }}>This is a preview of what will be downloaded</span>
+        <div style={{ background:"#fff", borderRadius:16, padding:24, boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+            <h3 style={{ fontSize:17, fontWeight:700, color:"#0f172a", margin:0 }}>Preview ({filtered.length} bugs)</h3>
+            <span style={{ fontSize:13, color:"#94a3b8" }}>This is a preview of what will be downloaded</span>
           </div>
-          <div className="table-wrap">
-            {filtered.length === 0 ? (
-              <p style={{ padding:"2rem", textAlign:"center", color:"#aaa" }}>No bugs match the selected filters.</p>
-            ) : (
-              <table>
+
+          {filtered.length === 0 ? (
+            <p style={{ textAlign:"center", color:"#94a3b8", padding:"32px 0", fontSize:14 }}>No bugs match the selected filters.</p>
+          ) : (
+            <div style={{ overflowX:"auto" }}>
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13.5 }}>
                 <thead>
                   <tr>
-                    <th>ID</th><th>Title</th><th>Severity</th><th>AI Severity</th>
-                    <th>Priority</th><th>Status</th><th>Assigned To</th><th>Created By</th><th>Date</th>
+                    {["ID","Title","Severity","AI Severity","Priority","Status","Assigned To","Created By","Date"].map((h) => (
+                      <th key={h} style={{ textAlign:"left", padding:"0 12px 12px 0", borderBottom:"2px solid #f1f5f9", color:"#94a3b8", fontWeight:600, fontSize:12, whiteSpace:"nowrap" }}>{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((b) => (
-                    <tr key={b._id}>
-                      <td style={{ color:"#aaa", fontSize:"0.8rem" }}>#{b._id?.slice(-6)}</td>
-                      <td style={{ fontWeight:600, maxWidth:200 }}>{b.title}</td>
-                      <td><span className={`badge badge-${b.severity}`}>{b.severity}</span></td>
-                      <td>
-                        {b.aiSeverity
-                          ? <span className={`badge badge-${b.aiSeverity}`}>🤖 {b.aiSeverity}</span>
-                          : <span style={{ color:"#aaa", fontSize:"0.8rem" }}>—</span>
-                        }
-                      </td>
-                      <td><span className={`badge badge-${b.priority==="high"?"critical":b.priority==="medium"?"major":"trivial"}`}>{b.priority}</span></td>
-                      <td><span className={`badge badge-${b.status}`}>{b.status}</span></td>
-                      <td>{b.assignedTo?.name || <span style={{ color:"#aaa" }}>Unassigned</span>}</td>
-                      <td>{b.createdBy?.name || "—"}</td>
-                      <td style={{ color:"#aaa", fontSize:"0.8rem" }}>{new Date(b.createdAt).toLocaleDateString()}</td>
+                    <tr key={b._id} style={{ borderBottom:"1px solid #f1f5f9" }}>
+                      <td style={{ padding:"12px 12px 12px 0", color:"#64748b", fontSize:12 }}>#{b._id?.slice(-6)}</td>
+                      <td style={{ padding:"12px 12px 12px 0", fontWeight:600, maxWidth:200 }}>{b.title}</td>
+                      <td style={{ padding:"12px 12px 12px 0" }}><span style={{ background:"#fce7e7", color:"#dc2626", padding:"3px 10px", borderRadius:20, fontSize:12, fontWeight:600 }}>{b.severity}</span></td>
+                      <td style={{ padding:"12px 12px 12px 0" }}>{b.aiSeverity ? <span style={{ background:"#ede9fe", color:"#7c3aed", padding:"3px 10px", borderRadius:20, fontSize:12 }}>🤖 {b.aiSeverity}</span> : <span style={{ color:"#94a3b8" }}>—</span>}</td>
+                      <td style={{ padding:"12px 12px 12px 0" }}>{b.priority}</td>
+                      <td style={{ padding:"12px 12px 12px 0" }}><span style={{ background:"#dcfce7", color:"#16a34a", padding:"3px 10px", borderRadius:20, fontSize:12, fontWeight:600 }}>{b.status}</span></td>
+                      <td style={{ padding:"12px 12px 12px 0", color:"#1e293b" }}>{b.assignedTo?.name || <span style={{ color:"#94a3b8" }}>Unassigned</span>}</td>
+                      <td style={{ padding:"12px 12px 12px 0", color:"#1e293b" }}>{b.createdBy?.name || "—"}</td>
+                      <td style={{ padding:"12px 0 12px 0", color:"#64748b", fontSize:12, whiteSpace:"nowrap" }}>{new Date(b.createdAt).toLocaleDateString()}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            )}
-          </div>
+            </div>
+          )}
         </div>
+
       </div>
     </>
   );
